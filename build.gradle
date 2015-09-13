@@ -1,0 +1,49 @@
+buildscript {
+    apply plugin: 'java'
+}
+
+plugins {
+    id 'java'
+    id 'eclipse'
+    id 'idea'
+    id "com.google.protobuf" version "0.6.1"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.apache.logging.log4j:log4j-api:2.3'
+    compile 'org.apache.logging.log4j:log4j-core:2.3'
+    compile 'com.google.protobuf:protobuf-java:2.6.1'
+    compile 'commons-cli:commons-cli:1.3.1'
+}
+
+protobuf {
+    protoc {
+        // Download from repositories
+        artifact = 'com.google.protobuf:protoc:2.6.1'
+    }
+    generatedFilesBaseDir = "$projectDir/src/generated"
+}
+
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/generated/main'
+        }
+    }
+}
+
+version = 1.0
+task dist(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'JPulseModule',
+                'Implementation-Version': version,
+                'Main-Class': 'net.digitalbebop.Main'
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
