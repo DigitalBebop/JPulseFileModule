@@ -1,12 +1,16 @@
 package net.digitalbebop;
 
 import com.google.gson.Gson;
+import com.google.protobuf.ByteString;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.UserPrincipal;
 import java.util.*;
 
 public final class PulseFileUtils {
@@ -20,6 +24,29 @@ public final class PulseFileUtils {
         public FormatObject(List<String> format) {
             this.format = format;
         }
+    }
+
+    public void holdMe(Path jpath) {
+        String owner = "unknown";
+
+        try {
+            UserPrincipal princ = Files.getOwner(jpath);
+            owner = princ.getName();
+        } catch (IOException e) {
+            logger.error("Failed to get owner of File: " + e.getLocalizedMessage(), e);
+        }
+
+        final net.digitalbebop.ClientRequests.IndexRequest.Builder builder = net.digitalbebop.ClientRequests.IndexRequest.newBuilder();
+
+        final String metaTags = PulseFileUtils.getMetaTags(jpath);
+        builder.setUsername(owner)
+                .setModuleName(Main.ModuleName)
+                .setModuleId(jpath.toString())
+                .setMetaTags(metaTags)
+                .setIndexData("")
+                .setRawData(ByteString.copyFrom(new byte[0]))
+                .setTimestamp(new Date().getTime())
+                .setLocation("");
     }
 
     private static boolean isImageExtension(String ext) {
